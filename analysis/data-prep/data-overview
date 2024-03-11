@@ -1,1 +1,36 @@
 
+library('dplyr') # for data wrangling
+library('sf')    # for spatial data
+library('ggplot2')
+
+bc <- filter(canadianmaps::PROV, PT == 'BC') %>% # map of BC
+  st_geometry() %>% # extract geometry only; drop attributes
+  st_as_sf() %>% # convert sfc_MULTIPOLYGON to sf object
+  st_transform('EPSG:3005') # project to the BC Albers projection
+
+studyarea <- st_read('data/studyarea/StudyAreaPolygon.shp')%>% # specify (unprojected) coordinate system # fixed multipolygon using ArcGIS aggregate tool
+  st_geometry() %>% # extract geometry only; drop attributes
+  st_as_sf() %>% # convert sfc_MULTIPOLYGON to sf object
+  #st_bbox() %>%
+  st_as_sfc() %>%
+  st_as_sf() %>%
+  st_transform('EPSG:3005') # project to the BC Albers projection
+
+# plot study area 
+plot(studyarea)
+
+plot(bc)
+plot(studyarea, add = TRUE, col = 'red')
+
+# only keeping cut blocks that intersect with study area
+cuts <-st_read('data/cutblocks/harvested_cuts_sa.shp')%>%
+  st_transform('EPSG:3005')%>%
+  st_intersection(studyarea)
+  
+  plot(bc)
+plot(cuts, add=TRUE, col= 'green')
+
+# only keeping BGC zones that intersect with study area
+bgc <-st_read('data/BGCzones/tepps_bec_zone.shp') %>%
+  st_transform('EPSG:3005')
+
